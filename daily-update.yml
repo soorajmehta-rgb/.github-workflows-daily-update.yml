@@ -1,0 +1,35 @@
+name: Daily Portfolio Update
+ 
+on:
+  schedule:
+    - cron: '30 1 * * 1-5'
+  workflow_dispatch:
+ 
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+ 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: Install dependencies
+        run: pip install requests yfinance
+ 
+      - name: Run portfolio updater
+        run: python portfolio-updater.py
+ 
+      - name: Commit and push
+        run: |
+          git config user.name "Portfolio Bot"
+          git config user.email "bot@portfolio.local"
+          mkdir -p docs data
+          git add -A
+          git diff --staged --quiet || git commit -m "Auto-update: $(date +'%Y-%m-%d')"
+          git push
